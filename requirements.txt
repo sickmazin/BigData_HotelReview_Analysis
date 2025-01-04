@@ -1,2 +1,4 @@
-pyspark==3.5.0
+pyspark~=3.5.4
 pandas==2.2.3
+pyspark-stubs~=3.0.0.post3
+streamlit~=1.41.1

@@ -1,10 +1,91 @@
+import folium
 import streamlit as st
-from main import number_of_Hotel, top_hotel_rev, top_nationality_rev, topDict, top_rev_score, review_plot_yearORmonths, \
-    all_Hotel_Name
+from streamlit_folium import st_folium
+from allQuery import number_of_Hotel, top_hotel_rev, top_nationality_rev, topDict, top_rev_score, review_plot_yearORmonths, \
+    all_Hotel_Name, dataMap
 import plotly.express as px
+import matplotlib.pyplot as plt
+import allQuery as u
+import streamlit as st
+import folium
+from pyspark.sql import functions as F
+from pyspark.sql.dataframe import DataFrame
+from streamlit_folium import st_folium
+from pyspark.ml.feature import HashingTF, IDF, Tokenizer, StopWordsRemover
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+@st.cache_data
+def get_dataMap():
+    return dataMap()
+
+@st.cache_data
+def popup(name, reviews, score):
+    return  f'''
+    <div style="width: 200px; height: 120px; padding: 5px; border-radius: 8px; text-align:center;">
+            <strong>{name}</strong>
+            <div style="display:block;padding:5px;align-items:center;justify-content:space-between">
+                <div style="text-align:center;">
+                <strong>Punteggio: {score}/10 </strong>
+                </div>
+                <div style="text-align:center;">
+                <strong>Recensioni: {reviews}</strong>
+                </div>
+            </div>
+        </div>'''
+
+@st.cache_data
+def get_wordclouds():
+    _wc_review=  u.get_Rev_Score()
+    positive = _wc_review.filter(_wc_review.Reviewer_Score >= 7).toPandas()
+    text = " ".join(str(value) for value in positive["Review"])
+    p_wordcloud = WordCloud(
+        width= 300,
+        height= 200,
+        background_color = 'white',
+        max_words = 200,
+        max_font_size = 40,
+        scale = 3,
+        random_state = 42
+    ).generate(text)
+
+    negative = _wc_review.filter(_wc_review.Reviewer_Score < 7).toPandas()
+    text = " ".join(str(value) for value in negative["Review"])
+    n_wordcloud = WordCloud(
+        width= 300,
+        height= 200,
+        background_color = 'white',
+        max_words = 200,
+        max_font_size = 40,
+        scale = 3,
+        random_state = 42
+    ).generate(text)
+
+    return p_wordcloud, n_wordcloud
 
 st.title("Hotel Review Analytics")
 st.write("")
+
+# MAPPA
+st.header("Mappa")
+
+#center_eu = [54.5260, 15.2551]
+#map = folium.Map(location=center_eu, zoom_start=5, prefer_canvas=True, tiles="cartodb positron")
+#marker_cluster = folium.plugins.MarkerCluster().add_to(map)
+#
+#dfMap = get_dataMap()
+#
+#
+#for row in dfMap.itertuples():
+#    folium.Marker([row.lat, row.lng], popup=folium.Popup(popup(row.Hotel_Name, row.Reviews, round(row.Average_Score, 1)), max_width=250)).add_to(marker_cluster)
+#
+#st_folium(map, width=700, height=500)
+
+
+
 ### Sezione di introduzione
 st.markdown("---")
 st.subheader("Perché Analizzare Questo Dataset?")
@@ -16,34 +97,36 @@ st.write(
     "Recensioni relative a **"+str(number_of_Hotel())+"** Hotel sparsi in tutto il mondo."
 )
 
+col1, col2 = st.columns(2)
 # Descrizione del dataset
-st.header("Cosa Contiene il Dataset?")
-st.markdown(
-    "Il dataset include informazioni dettagliate sulle recensioni e sugli hotel, come:")
-fields = [
-    "Indirizzo e Nome dell'Hotel",
-    "Recensioni Positive e Negative",
-    "Nazionalità dei Recensori",
-    "Punteggi assegnati",
-    "Tags e Tempi di Recensione",
-]
-for field in fields:
-    st.write(f"- {field}")
+with col1:
+    st.header("Cosa Contiene il Dataset?")
+    st.markdown(
+        "Il dataset include informazioni dettagliate sulle recensioni e sugli hotel, come:")
+    fields = [
+        "Indirizzo e Nome dell'Hotel",
+        "Recensioni Positive e Negative",
+        "Nazionalità dei Recensori",
+        "Punteggi assegnati",
+        "Tags e Tempi di Recensione",
+    ]
+    for field in fields:
+        st.write(f"- {field}")
 
 # Possibili analisi
-st.subheader("Quali Analisi Possiamo Fare?")
-st.markdown(
-    "Questo dataset è un vero tesoro di possibilità:")
+with col2:
+    st.subheader("Quali Analisi Possiamo Fare?")
+    st.markdown(
+            "Questo dataset è un vero tesoro di possibilità:")
 
-analyses = [
+    analyses = [
     "**Sentiment Analysis:** Scopri quali parole e frasi influenzano maggiormente le valutazioni degli ospiti.",
     "**Correlazioni:** Analizza il legame tra la nazionalità dei recensori e i punteggi assegnati.",
     "**Clustering e Raccomandazioni:** Raggruppa gli hotel per caratteristiche comuni o crea un motore di raccomandazione per clienti con preferenze specifiche.",
     "**Visualizzazioni Informative:** Crea mappe e grafici per rappresentare tendenze e insight in modo accattivante."
 ]
-
-for analysis in analyses:
-    st.write(f"- {analysis}")
+    for analysis in analyses:
+            st.write(f"- {analysis}")
 
 st.subheader("Perché È Importante?")
 st.write(
@@ -51,12 +134,31 @@ st.write(
     "Grazie a questo dataset, possiamo non solo ottimizzare i servizi degli hotel, ma anche migliorare l'esperienza dei viaggiatori, garantendo che ogni soggiorno sia all'altezza delle loro aspettative.🌟"
 )
 st.markdown("---")
-# MAPPA
-st.header("Mappa")
+
+#CLOUD WORD
+
+p_wordcloud, n_wordcloud = get_wordclouds()
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Word Cloud delle recensioni positive")
+with col2:
+    st.subheader("Word Cloud delle recensioni negative")
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 6), facecolor='none')
+
+axes[0].imshow(p_wordcloud, interpolation='bilinear')
+axes[0].axis('off')
+
+axes[1].imshow(n_wordcloud, interpolation='bilinear')
+axes[1].axis('off')
+
+st.pyplot(fig)
+
+
 
 # PIE CHART
 st.markdown("---")
-st.header("Pie Chart")
+st.header("Grafici a torta")
 @st.cache_data
 def getDict():
     list=[]
@@ -91,7 +193,7 @@ with col2:
 
 # HISTOGRAM
 st.markdown("---")
-st.header("Histogram")
+st.header("Istogrammi")
 
 dataHisto1 = topDict(review_plot_yearORmonths(2, None),12)
 
@@ -116,7 +218,7 @@ with col2:
     """)
 
 
-dataHisto2 = topDict(review_plot_yearORmonths(1, None),12)
+dataHisto2 = topDict(review_plot_yearORmonths(1, None),12 )
 fig = px.histogram(dataHisto2, x="Month", y="Review_Count", nbins=20, title="Distribuzione delle recensioni nei mesi",
                    labels={"Year": "Anno", "Review_Count": "Conteggio delle recensioni"})
 fig.update_layout(
@@ -137,41 +239,3 @@ with col2:
     Questo potrebbe indicare una stagionalità moderata, probabilmente legata ai periodi di vacanza o alta stagione per gli hotel.
     """)
 
-# Titolo dell'app
-st.subheader("Distribuzione delle recensioni di un Hotel specifico per mese e anno")
-col1, col2 = st.columns(2)
-
-
-with col1:
-    selected_hotel = st.selectbox(
-        "Seleziona l'hotel:",
-        options=sorted(all_Hotel_Name())
-    )
-with col2:
-    selected_year = st.selectbox(
-        "Seleziona l'anno:",
-        options=sorted(['2015', '2016', '2017'])
-    )
-
-
-df = review_plot_yearORmonths(3,selected_hotel )
-filtered_df = df[df['Year'] == selected_year].select("Month", "Review_Count")
-
-if not filtered_df==None:
-    fig = px.bar(
-        filtered_df,
-        x="Month",
-        y="Review_Count",
-        title=f"Distribuzione delle recensioni nei mesi dell'hotel: {selected_hotel} ({selected_year})",
-        labels={"Mese": "Mesi", "Numero di Recensioni": "Numero di recensioni"},
-        text_auto=True
-    )
-    fig.update_layout(
-        bargap=0.1,
-        xaxis_title="Mesi",
-        yaxis_title="Numero di recensioni",
-    )
-
-    st.plotly_chart(fig)
-else:
-    st.warning("Non ci sono dati disponibili per la selezione effettuata.")

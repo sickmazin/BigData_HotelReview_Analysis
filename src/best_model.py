@@ -1,4 +1,4 @@
-import utility as u
+import allQuery as u
 import os
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer, StopWordsRemover
 from pyspark.ml.classification import LogisticRegression

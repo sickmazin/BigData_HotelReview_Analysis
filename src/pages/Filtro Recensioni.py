@@ -1,5 +1,5 @@
 import streamlit as st
-from main import base_filtering, all_nationality, all_Hotel_Name
+from allQuery import base_filtering, all_nationality, all_Hotel_Name
 
 st.title("Visualizzazione estesa delle recensioni")
 st.markdown("")

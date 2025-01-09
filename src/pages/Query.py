@@ -4,6 +4,21 @@ from allQuery import best_tags, topDict, all_Hotel_Name, all_nationality, plot_r
     all_reviews_score_by_Hotel, top_hotel_rev, top_nationality_rev, top_rev_score, review_plot_yearORmonths, \
     number_reviews_per_score, avg_points_per_period
 
+st.title("Analisi di ulteriori query sul dataset")
+
+st.markdown("""
+Questa dashboard interattiva ti permette di esplorare le recensioni degli hotel di lusso attraverso diverse visualizzazioni:
+
+1. **Distribuzione dei tag più frequenti**: Visualizza i tag più comuni nelle recensioni.
+2. **Distribuzione temporale delle recensioni**: Analizza l'andamento delle recensioni nel tempo, filtrabile per hotel e nazionalità.
+3. **Box plot dei punteggi delle recensioni**: Esplora la distribuzione dei punteggi per hotel specifici con una sintesi visiva e dettagli sui dati.
+4. **Classifiche di nazionalità e hotel**: Scopri le nazionalità e gli hotel più rilevanti in base a punteggi, numero di recensioni o parole utilizzate.
+5. **Analisi delle recensioni per mese, anno e voto**: Esamina le recensioni per periodo o punteggio, con la possibilità di selezionare un hotel specifico.
+6. **Andamento dei punteggi medi nel tempo**: Traccia il punteggio medio delle recensioni su base giornaliera, mensile o annuale.
+
+""")
+st.markdown("---")
+
 data = topDict(best_tags(),15)
 fig = px.histogram(data, x="Tag", y="count", nbins=20, title="Distribuzione dei tags nelle recensioni",
                    labels={"Year": "Anno", "Review_Count": "Conteggio delle recensioni"})
@@ -118,7 +133,7 @@ col1, col2 = st.columns(2)
 with col1:
     selected_hotel = st.selectbox(
         "Seleziona l'hotel:",
-        options=sorted(all_Hotel_Name())
+        options=sorted(all_Hotel_Name)
     )
 with col2:
     selected_year = st.selectbox(
@@ -151,16 +166,29 @@ else:
 
 st.markdown("---")
 #NUM REC PER PUNTEGGIO PER  HOTEL SPECIFICO
-hotel_names = all_Hotel_Name()
-hotel1 = st.selectbox("Select hotel", hotel_names, format_func=lambda x: "None" if x is None else x, key="hotel1")
+st.subheader("Distribuzione delle recensioni di un Hotel specifico per voto")
+st.write("Non selezionando l'Hotel si considera la distribuzione per tutti gli Hotel.")
+hotel1 =  st.selectbox(
+    "Seleziona l'Hotel:",
+    options= [None] + sorted(all_Hotel_Name),
+    key="hotel1",
+    index=0,
+)
 
 reviews_by_score = number_reviews_per_score(hotel1).toPandas()
 st.bar_chart(reviews_by_score, x="Reviewer_Score", y="count", x_label="Reviewer score", use_container_width=True)
 st.markdown("---")
 
 #RECENSIONI PER PERIODO
+st.subheader("Andamento del voto delle recensioni di un Hotel specifico per periodo di tempo")
+st.write("Non selezionando l'Hotel si considera l'andamento per tutti gli Hotel.")
 col1, col2 = st.columns(2)
-hotel2 = col1.selectbox("Select hotel", hotel_names, format_func=lambda x: "None" if x is None else x, key="hotel2")
+hotel2 = col1.selectbox(
+    "Seleziona l'Hotel:",
+    options= [None] + sorted(all_Hotel_Name),
+    key="hotel2",
+    index=0,
+)
 period = col2.selectbox("Select period", ["Day", "Month", "Year"])
 
 st.line_chart(avg_points_per_period(period, hotel2).toPandas(), x = period, x_label=period, y="Average_Score", use_container_width=True)

@@ -133,12 +133,9 @@ def base_filtering(filter_Name: str, filter_Rev_Score: (float,str), filter_Avg_S
             dfCopia= dfCopia.filter(dfCopia.Reviewer_Score <= filter_Avg_Score[0])
         #else sarebbe errore da verificare
 
-
-
     #FILTRAGGIO NAZIONALITà REVIEWER
     if filter_Nationality_Rev is not None:
         dfCopia= dfCopia.filter(dfCopia.Reviewer_Nationality == filter_Nationality_Rev)
-
 
     #FILTRAGGIO SE DEVE O MENO CONTENERE LA PARTE NEGATIVA
     if filter_Negative_Rev is False:
@@ -288,7 +285,9 @@ def filter_reviews_by_word(dfNew, word: str):
 def top_rev_score(modality: int):
     dfCopia = reviews
     if modality==1:
-        dfCopia= dfCopia.groupby(dfCopia.Reviewer_Score).count().sort("count", ascending=False).withColumnRenamed("count", "Totale recensioni")
+        dfCopia= (dfCopia.groupby(dfCopia.Reviewer_Score).count()
+                  .sort("count", ascending=False)
+                  .withColumnRenamed("count", "Totale recensioni"))
     elif modality==2:
         dfCopia = dfCopia.withColumn(
             'Review_Type',
@@ -359,6 +358,10 @@ def review_plot_yearORmonths(modality: int, hotel: str):
 
 def dataMap():
     return spark_session.sql("SELECT Hotel_Name, count(*) as Reviews, first(Average_Score) as Average_Score, first(lat) as lat, first(lng) as lng FROM Hotel_Reviews GROUP BY Hotel_Name").toPandas()
+
+def dataFrameForModel():
+    dfRet=reviews.withColumn("Review", F.concat(F.col("Positive_Review"), F.lit(" "), F.col("Negative_Review")))
+    return  dfRet.withColumn("Reviewer_Score", F.when(dfRet.Reviewer_Score >= 7, 1).otherwise(0)).withColumnRenamed("Reviewer_Score", "label")
 
 # FUNZIONI UTILI PER FILTERING
 

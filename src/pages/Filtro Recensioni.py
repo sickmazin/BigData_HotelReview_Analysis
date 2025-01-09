@@ -84,7 +84,6 @@ data = (base_filtering(
 
 st.markdown("---")
 st.subheader("Recensioni")
-st.markdown("---")
 
 
 num_reviews = len(data)
@@ -116,7 +115,7 @@ for i, row in enumerate(data[start_idx:end_idx]):
     with col1:
         st.write(f"🏨 **{row.get('Hotel_Name')}**")
     with col2:
-        st.write(f"📍 **{row.get('Hotel_Address')}**")
+        st.write(f"📍 {row.get('Hotel_Address')}")
     st.markdown("")
 
     if filter_Positive_Rev:

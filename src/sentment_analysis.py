@@ -1,5 +1,5 @@
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer, StopWordsRemover
-from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.classification import LogisticRegression, LinearSVC
 from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml import Pipeline
@@ -33,35 +33,59 @@ df = positive_sampled.union(negative_df)
 
 tokenizer = Tokenizer(inputCol="Review", outputCol="words")
 remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures")
+hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=1000)
 idf = IDF(inputCol="rawFeatures", outputCol="features")
 log_reg = LogisticRegression(featuresCol="features", labelCol="label", maxIter=20)
 eval = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
 
-pipeline = Pipeline(stages=[tokenizer, remover, hashingTF, idf, log_reg])
+
+svm = LinearSVC(featuresCol="features", labelCol="label")
+
+pipeline_svm = Pipeline(stages=[tokenizer, remover, hashingTF, idf, svm])
+pipeline_lr = Pipeline(stages=[tokenizer, remover, hashingTF, idf, log_reg])
 
 
 
-grid = ParamGridBuilder()\
+grid_lr = ParamGridBuilder()\
         .addGrid(hashingTF.numFeatures, [10, 100, 1000])\
         .addGrid(log_reg.regParam, [0.1, 0.01])\
         .addGrid(log_reg.elasticNetParam, [0.0, 0.5])\
         .build()
-cross_val = CrossValidator(estimator=pipeline, 
-                           estimatorParamMaps=grid, 
+
+
+
+grid_svm = ParamGridBuilder()\
+        .addGrid(hashingTF.numFeatures, [10, 100, 1000])\
+        .addGrid(svm.regParam, [1, 0.1, 0.01])\
+        .build()
+
+cross_val_svm = CrossValidator(estimator=pipeline_svm, 
+                           estimatorParamMaps=grid_svm, 
                            evaluator=eval, 
                            numFolds=5)
 
-cv_model = cross_val.fit(df)
+cv_model_svm = cross_val_svm.fit(df)
 
-bestModel = cv_model.bestModel
+bestModel = cv_model_svm.bestModel.stages[-1]
 print("Best Parameters: ", bestModel.explainParams())
-print("Best Area Under ROC: ", eval.evaluate(bestModel.transform(dataframe)))
 
-
-avgMetrics = cv_model.avgMetrics  
+avgMetrics = cv_model_svm.avgMetrics  
 print("Cross-Validation Metrics: ", avgMetrics)
 
-cv_model.save(os.path.join(project_directory, "sentment_analysis"))
+cross_val_lr = CrossValidator(estimator=pipeline_svm, 
+                           estimatorParamMaps=grid_svm, 
+                           evaluator=eval, 
+                           numFolds=5)
 
-#best params regparam=0.01, elasticnetparam=0.0, numfeatures=1000
+cv_model_lr = cross_val_lr.fit(df)
+
+bestModel = cv_model_lr.bestModel.stages[-1]
+print("Best Parameters: ", bestModel.explainParams())
+
+avgMetrics = cv_model_lr.avgMetrics  
+print("Cross-Validation Metrics: ", avgMetrics)
+
+#cv_model.save(os.path.join(project_directory, "sentment_analysis"))
+
+#best params for log_reg regparam=0.01, elasticnetparam=0.0, numfeatures=1000
+#best params for svm regparam=0.01, numFeatures=1000

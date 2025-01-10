@@ -60,6 +60,8 @@ La homepage della dashboard include:
 ### Sviluppato da
 Mattia Coriglia e Paolo Costa per l'esame di Big Data, anno 2025
 
+## Report completo
+Il report completo del progetto è presente nel pdf denominato : RelazioneProgettoBigData
 
 
 

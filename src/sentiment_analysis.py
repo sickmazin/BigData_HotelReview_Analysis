@@ -33,7 +33,7 @@ df = positive_sampled.union(negative_df)
 
 tokenizer = Tokenizer(inputCol="Review", outputCol="words")
 remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=10000)
+hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures")
 idf = IDF(inputCol="rawFeatures", outputCol="features")
 log_reg = LogisticRegression(featuresCol="features", labelCol="label", maxIter=20)
 eval = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")

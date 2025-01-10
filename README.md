@@ -36,20 +36,20 @@ pip install -r requirements.txt
 ```
 # Dataset
 Il dataset utilizzato è disponibile su Kaggle e contiene:
- - Nome e indirizzo degli hotel.
- - Recensioni positive e negative.
- - Nazionalità dei recensori.
- - Punteggi assegnati.
- - Tag e date di recensione.
+- Nome e indirizzo degli hotel.
+- Recensioni positive e negative
+- Nazionalità dei recensori.
+- Punteggi assegnati.
+- Tag e date di recensione.
 
 Fonte del dataset: [515k Hotel Reviews Data in Europe](kaggle.com/datasets/jiashenliu/515k-hotel-reviews-data-in-europe)
 
 ## Dashboard
 La homepage della dashboard include:
-Mappa Interattiva: Mostra la posizione degli hotel.
-Word Cloud: Visualizza le parole più frequenti nelle recensioni positive e negative.
-Grafici a Torta: Rappresentano proporzioni e distribuzioni chiave.
-Filtri Personalizzati: Permettono di esplorare recensioni basate su hotel, nazionalità e altri parametri.
+- Mappa Interattiva: Mostra la posizione degli hotel.
+- Word Cloud: Visualizza le parole più frequenti nelle recensioni positive e negative.
+- Grafici a Torta: Rappresentano proporzioni e distribuzioni chiave.
+- Filtri Personalizzati: Permettono di esplorare recensioni basate su hotel, nazionalità e altri parametri.
 
 ### Sviluppato da
 Mattia Coriglia e Paolo Costa per l'esame di Big Data, anno 2025

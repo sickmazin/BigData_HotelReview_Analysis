@@ -50,6 +50,12 @@ La homepage della dashboard include:
 - Word Cloud: Visualizza le parole più frequenti nelle recensioni positive e negative.
 - Grafici a Torta: Rappresentano proporzioni e distribuzioni chiave.
 - Filtri Personalizzati: Permettono di esplorare recensioni basate su hotel, nazionalità e altri parametri.
+- altro...
+## Esempio di grafici presenti
+![Mappa](https://github.com/user-attachments/assets/404a7779-faa4-412b-abee-47d682533fc7)
+
+![Grafici a torte](https://github.com/user-attachments/assets/1d397c6e-5393-4dc1-a629-96f2e77df05e)
+![Box plot per riconoscere recensioni outlier](https://github.com/user-attachments/assets/ccb38714-7c74-42e9-9c9f-63de405cd2b1)
 
 ### Sviluppato da
 Mattia Coriglia e Paolo Costa per l'esame di Big Data, anno 2025

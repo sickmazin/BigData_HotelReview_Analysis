@@ -1,4 +1,6 @@
 # Default ignored files
+*.csv
+*.parquet
 /shelf/
 /workspace.xml
 # Editor-based HTTP Client requests

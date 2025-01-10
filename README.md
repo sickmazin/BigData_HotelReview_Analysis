@@ -11,8 +11,8 @@ La dashboard è sviluppata utilizzando [Streamlit](https://streamlit.io/), che c
   - Recensioni positive e negative.
   - Distribuzione geografica degli hotel su mappe interattive.
   - Grafici come word cloud, istogrammi e grafici a torta.
-- **Sentiment Analysis**: Implementata utilizzando modelli di regressione logistica e SVM con tecniche avanzate di NLP.
-- **Preprocessing Avanzato**:
+- **Sentiment Analysis**: Implementata utilizzando modelli di regressione logistica e SVM con tecniche di NLP.
+- **Preprocessing**:
   - Conversione e pulizia di colonne come date, punteggi e tag.
   - Rimozione di valori mancanti.
   - Salvataggio dei dati in formato parquet per ottimizzare le prestazioni.
@@ -58,7 +58,7 @@ La homepage della dashboard include:
 ![Box plot per riconoscere recensioni outlier](https://github.com/user-attachments/assets/ccb38714-7c74-42e9-9c9f-63de405cd2b1)
 
 ### Sviluppato da
-Mattia Coriglia e Paolo Costa per l'esame di Big Data, anno 2025
+Mattia Corigliano e Paolo Costa per l'esame di Big Data, anno 2025
 
 ## Report completo
 Il report completo del progetto è presente nel pdf denominato : RelazioneProgettoBigData

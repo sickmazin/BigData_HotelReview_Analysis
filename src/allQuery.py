@@ -5,7 +5,6 @@ import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import to_date
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.types import IntegerType
 
 '''
     These functions assume a certain type of DataFrame, which is the one obtained from the data folder.
@@ -14,9 +13,6 @@ def get_spark_session():
     return SparkSession.builder \
         .master("local[*]") \
         .appName("Hotel Review Statistics") \
-        .config("spark.hadoop.io.native.lib.available", "false") \
-        .config("spark.driver.extraJavaOptions", "-Djava.security.manager=allow") \
-        .config("spark.executor.extraJavaOptions", "-Djava.security.manager=allow") \
         .config("spark.driver.memory", "8g") \
         .config("spark.executor.memory", "8g") \
         .config("spark.local.dir", "/tmp/spark-temp") \
@@ -25,15 +21,10 @@ def get_spark_session():
         .config("spark.sql.execution.arrow.maxRecordsPerBatch", "1000") \
         .getOrCreate()
 
-spark_session = SparkSession.builder \
-    .appName("Hotel Review Statistics") \
-    .master("local[*]") \
-    .config("spark.driver.extraJavaOptions", "-Djava.security.manager=allow") \
-    .config("spark.executor.extraJavaOptions", "-Djava.security.manager=allow") \
-    .config("spark.driver.memory", "16g") \
-    .config("spark.executor.memory", "16g") \
-    .getOrCreate()
-df = spark_session.read.csv("dataset/Hotel_Reviews.csv", header=True, inferSchema=True)
+spark_session = get_spark_session()
+
+project_directory = os.path.dirname(os.path.abspath(__file__))
+df = spark_session.read.parquet(os.path.join(project_directory, "data.parquet"))
 
 #ESEGUIRE UNA PRIMA FASE DI CORREZIONE DELLO SCHEMA
 reviews = df.withColumn("Review_Date", to_date(F.col("Review_Date"), "M/d/yyyy"))
@@ -256,13 +247,8 @@ def best_tags():
     """
     :return:  Un DataFrame PySpark con i tags ordinati per numero di utilizzi Tag-Count.
     """
-    # Conversione della colonna Tags in un array TODO da inserire nell'aggiustamento dello schema? o lasciare come prima per il resto?
-    dfNew = reviews.withColumn("Tags_Cleaned", F.regexp_replace(F.col("Tags"), r"[\[\]']", ""))
-    dfNew = dfNew.withColumn("Tags_Array", F.split(F.col("Tags_Cleaned"), ",\s*"))
-    dfNew = dfNew.withColumn("Tags_Array", F.expr("transform(Tags_Array, x -> trim(x))"))
-
     #explode separa ogni elemento dell'array in una nuova riga
-    df_exploded = dfNew.withColumn("Tag", F.explode(F.col("Tags_Array")))
+    df_exploded = reviews.withColumn("Tag", F.explode(F.col("Tags_Array")))
 
     tag_count = df_exploded.groupBy("Tag").count().orderBy("count", ascending=False)
 
@@ -386,3 +372,4 @@ def topDict(df,head):
         rev_number_list.append(row[1])
     dict= {df.columns[0]: hotel_Name_list, df.columns[1]: rev_number_list}
     return dict
+

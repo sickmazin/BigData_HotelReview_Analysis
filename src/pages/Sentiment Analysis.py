@@ -13,9 +13,9 @@ def create_sentment_model() -> Pipeline:
 
     tokenizer = Tokenizer(inputCol="Review", outputCol="words")
     remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-    hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=1000)
+    hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=10000)
     idf = IDF(inputCol="rawFeatures", outputCol="features")
-    log_reg = LogisticRegression(featuresCol="features", labelCol="label", maxIter=20, regParam=0.01, elasticNetParam=0.0)
+    log_reg = LogisticRegression(featuresCol="features", labelCol="label", maxIter=20, regParam=0.1, elasticNetParam=0.0)
     eval = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
 
     # Separate classes and undersample positive class (the majority)

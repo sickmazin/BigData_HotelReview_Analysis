@@ -1,20 +1,11 @@
-import folium
 import streamlit as st
+import folium
 from streamlit_folium import st_folium
-from allQuery import number_of_Hotel, top_hotel_rev, top_nationality_rev, topDict, top_rev_score, review_plot_yearORmonths, \
-    all_Hotel_Name, dataMap
+from allQuery import number_of_Hotel, top_hotel_rev, top_nationality_rev, topDict, top_rev_score, review_plot_yearORmonths, dataMap
 import plotly.express as px
 import matplotlib.pyplot as plt
 import allQuery as u
 import streamlit as st
-import folium
-from pyspark.sql import functions as F
-from pyspark.sql.dataframe import DataFrame
-from streamlit_folium import st_folium
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer, StopWordsRemover
-from pyspark.ml.classification import LogisticRegression
-from pyspark.ml import Pipeline
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
@@ -72,17 +63,17 @@ st.write("")
 # MAPPA
 st.header("Mappa")
 
-#center_eu = [54.5260, 15.2551]
-#map = folium.Map(location=center_eu, zoom_start=5, prefer_canvas=True, tiles="cartodb positron")
-#marker_cluster = folium.plugins.MarkerCluster().add_to(map)
-#
-#dfMap = get_dataMap()
-#
-#
-#for row in dfMap.itertuples():
-#    folium.Marker([row.lat, row.lng], popup=folium.Popup(popup(row.Hotel_Name, row.Reviews, round(row.Average_Score, 1)), max_width=250)).add_to(marker_cluster)
-#
-#st_folium(map, width=700, height=500)
+center_eu = [54.5260, 15.2551]
+map = folium.Map(location=center_eu, zoom_start=5, prefer_canvas=True, tiles="cartodb positron")
+marker_cluster = folium.plugins.MarkerCluster().add_to(map)
+
+dfMap = get_dataMap()
+
+
+for row in dfMap.itertuples():
+    folium.Marker([row.lat, row.lng], popup=folium.Popup(popup(row.Hotel_Name, row.Reviews, round(row.Average_Score, 1)), max_width=250)).add_to(marker_cluster)
+
+st_folium(map, width=700, height=500)
 
 
 

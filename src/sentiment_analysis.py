@@ -4,7 +4,7 @@ from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml import Pipeline
 from pyspark.sql import functions as F
-import utility as u
+import allQuery as u
 import os
 
 spark = u.get_spark_session()
@@ -33,7 +33,7 @@ df = positive_sampled.union(negative_df)
 
 tokenizer = Tokenizer(inputCol="Review", outputCol="words")
 remover = StopWordsRemover(inputCol="words", outputCol="filtered")
-hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=1000)
+hashingTF = HashingTF(inputCol="filtered", outputCol="rawFeatures", numFeatures=10000)
 idf = IDF(inputCol="rawFeatures", outputCol="features")
 log_reg = LogisticRegression(featuresCol="features", labelCol="label", maxIter=20)
 eval = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
@@ -46,16 +46,17 @@ pipeline_lr = Pipeline(stages=[tokenizer, remover, hashingTF, idf, log_reg])
 
 
 
+
 grid_lr = ParamGridBuilder()\
-        .addGrid(hashingTF.numFeatures, [10, 100, 1000])\
-        .addGrid(log_reg.regParam, [0.1, 0.01])\
+        .addGrid(hashingTF.numFeatures, [1000, 10000, 100000])\
+        .addGrid(log_reg.regParam, [0.1, 0.01, 1])\
         .addGrid(log_reg.elasticNetParam, [0.0, 0.5])\
         .build()
 
 
 
 grid_svm = ParamGridBuilder()\
-        .addGrid(hashingTF.numFeatures, [10, 100, 1000])\
+        .addGrid(hashingTF.numFeatures, [1000, 10000, 100000])\
         .addGrid(svm.regParam, [1, 0.1, 0.01])\
         .build()
 
@@ -72,8 +73,8 @@ print("Best Parameters: ", bestModel.explainParams())
 avgMetrics = cv_model_svm.avgMetrics  
 print("Cross-Validation Metrics: ", avgMetrics)
 
-cross_val_lr = CrossValidator(estimator=pipeline_svm, 
-                           estimatorParamMaps=grid_svm, 
+cross_val_lr = CrossValidator(estimator=pipeline_lr, 
+                           estimatorParamMaps=grid_lr, 
                            evaluator=eval, 
                            numFolds=5)
 
@@ -85,7 +86,5 @@ print("Best Parameters: ", bestModel.explainParams())
 avgMetrics = cv_model_lr.avgMetrics  
 print("Cross-Validation Metrics: ", avgMetrics)
 
-#cv_model.save(os.path.join(project_directory, "sentment_analysis"))
-
-#best params for log_reg regparam=0.01, elasticnetparam=0.0, numfeatures=1000
-#best params for svm regparam=0.01, numFeatures=1000
+#best params for log_reg regparam=0.1, elasticnetparam=0.0, numfeatures=10000
+#best params for svm regparam=0.1, numFeatures=10000

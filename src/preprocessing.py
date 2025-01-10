@@ -1,7 +1,7 @@
 from functools import reduce
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, DoubleType
-from pyspark.sql.functions import regexp_replace, to_date, col, when, count
+from pyspark.sql.functions import regexp_replace, to_date, col, when, expr, split, regexp_replace
 
 
 spark = SparkSession.builder \
@@ -43,6 +43,10 @@ reviews = reviews.withColumn("Review_Date", to_date("Review_Date", "M/d/yyyy"))
 reviews = reviews.withColumn("Negative_Review", when(col("Negative_Review") == "No Negative", "").otherwise(col("Negative_Review")))
 reviews = reviews.withColumn("Positive_Review", when(col("Positive_Review") == "No Positive", "").otherwise(col("Positive_Review")))
 
+#Tags colum converted in array 
+reviews = reviews.withColumn("Tags_Cleaned", regexp_replace(col("Tags"), r"[\[\]']", ""))
+reviews = reviews.withColumn("Tags_Array", split(col("Tags_Cleaned"), ",\s*")).drop("Tags_Cleaned", "Tags")
+reviews = reviews.withColumn("Tags_Array", expr("transform(Tags_Array, x -> trim(x))"))
 
 cols = [col(c) for c in reviews.columns]
 filter_expr = reduce(lambda a, b: a | b.isNull(), cols[1:], cols[0].isNull())
@@ -72,6 +76,6 @@ my_list = [("Mercure Paris Gare Montparnasse", 48.839752, 2.323791),
 for hotel in my_list:
     reviews = reviews.withColumn("lat", when(col("Hotel_Name") == hotel[0], hotel[1]).otherwise(col("lat"))) \
                      .withColumn("lng", when(col("Hotel_Name") == hotel[0], hotel[2]).otherwise(col("lng")))
-    
+   
 
 reviews.write.save("data.parquet", format="parquet")
